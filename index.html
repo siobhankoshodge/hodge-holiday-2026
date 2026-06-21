@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#18312d" />
+  <title>Hodge Holidays 2026 · The Grand Rail Escape</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Hodge Holidays 2026 home">
+      <span class="brand-mark">H</span>
+      <span>Hodge Holidays <small>2026</small></span>
+    </a>
+    <nav aria-label="Main navigation">
+      <a class="active" href="#itinerary">Itinerary</a>
+      <a href="#bookings">Bookings</a>
+      <a href="#activities">Activities</a>
+      <a href="#budget">Budget</a>
+    </nav>
+    <div class="account-tools">
+      <button class="sync-button" id="accountButton" type="button">
+        <span class="sync-dot offline" id="syncDot"></span>
+        <span id="syncLabel">Sign in</span>
+      </button>
+      <button class="icon-button" id="themeButton" aria-label="Toggle warm evening mode">☼</button>
+    </div>
+  </header>
+
+  <div class="sync-banner" id="syncBanner" hidden>
+    <span id="syncMessage">This device is saving locally.</span>
+    <button type="button" id="syncAction">Sign in to sync</button>
+  </div>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">15–28 AUGUST 2026 · THE GRAND RAIL ESCAPE</p>
+        <h1>A slower way<br>across <em>Europe.</em></h1>
+        <p class="intro">London to the lakes, via grand squares, Alpine rails and one extremely good final dinner.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#itinerary">Explore the route <span>→</span></a>
+          <button class="button ghost" id="printButton">Print plan</button>
+        </div>
+      </div>
+
+      <div class="route-card" aria-label="Trip route illustration">
+        <div class="sun"></div>
+        <svg class="route-map" viewBox="0 0 620 430" role="img" aria-label="Illustrated rail route from London through Brussels, Strasbourg, Lucerne, Como, Lausanne, Lyon and Lille">
+          <path class="land land-one" d="M12 85C78 20 174 34 211 75c35 39 82 26 119 5 65-37 139-14 176 39 45 64 111 84 106 163-5 82-97 111-168 94-76-19-117 13-178 35-72 26-151 2-186-48-30-43-3-92-35-132C17 196-25 122 12 85Z"/>
+          <path class="land land-two" d="M368 203c44-40 106-40 143 4 40 48 17 115-33 140-54 27-123 6-143-46-13-36 2-70 33-98Z"/>
+          <path class="rail-shadow" d="M74 75 C120 104 148 119 186 135 S252 169 281 202 S356 240 390 273 S361 331 317 318 S262 286 224 297 S183 326 152 346 S103 330 81 308" />
+          <path class="rail" d="M74 75 C120 104 148 119 186 135 S252 169 281 202 S356 240 390 273 S361 331 317 318 S262 286 224 297 S183 326 152 346 S103 330 81 308" />
+          <g class="map-stop" transform="translate(74 75)"><circle r="8"/><text x="-4" y="-18">London</text></g>
+          <g class="map-stop" transform="translate(186 135)"><circle r="7"/><text x="12" y="-4">Brussels</text></g>
+          <g class="map-stop" transform="translate(281 202)"><circle r="7"/><text x="11" y="-5">Strasbourg</text></g>
+          <g class="map-stop" transform="translate(390 273)"><circle r="7"/><text x="13" y="-5">Lucerne</text></g>
+          <g class="map-stop" transform="translate(317 318)"><circle r="7"/><text x="13" y="6">Como</text></g>
+          <g class="map-stop" transform="translate(224 297)"><circle r="7"/><text x="-62" y="-8">Lausanne</text></g>
+          <g class="map-stop" transform="translate(152 346)"><circle r="7"/><text x="-18" y="27">Lyon</text></g>
+          <g class="map-stop small" transform="translate(81 308)"><circle r="5"/><text x="-33" y="-12">Lille</text></g>
+          <g class="train" transform="translate(260 175) rotate(28)">
+            <rect x="-25" y="-12" width="50" height="24" rx="10"/>
+            <rect class="window" x="-14" y="-7" width="10" height="7" rx="2"/>
+            <rect class="window" x="1" y="-7" width="10" height="7" rx="2"/>
+            <circle cx="-13" cy="12" r="4"/><circle cx="13" cy="12" r="4"/>
+          </g>
+        </svg>
+        <div class="trip-stamp">
+          <span>HODGE</span>
+          <strong>HOLIDAYS</strong>
+          <strong>2026</strong>
+          <span>EUROPE BY RAIL</span>
+        </div>
+        <div class="route-summary">
+          <div><strong>14</strong><span>days</span></div>
+          <div><strong>6</strong><span>stops</span></div>
+          <div><strong>0</strong><span>flights</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ticker" aria-label="Trip highlights">
+      <span>EUROSTAR</span><i>✦</i><span>GRAND PLACE</span><i>✦</i><span>LAKE LUCERNE</span><i>✦</i><span>LAKE COMO</span><i>✦</i><span>LAVAUX VINEYARDS</span><i>✦</i><span>LYONNAISE DINNER</span>
+    </section>
+
+    <section class="section itinerary-section" id="itinerary">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">THE ITINERARY</p>
+          <h2>Six stops, one <em>beautiful line.</em></h2>
+        </div>
+        <p>Each leg unfolds at rail pace—enough movement to feel the journey, enough stillness to enjoy where you land.</p>
+      </div>
+
+      <div class="itinerary-grid" id="itineraryGrid"></div>
+      <div class="return-journey">
+        <span class="return-date">FRI 28 AUG</span>
+        <div>
+          <strong>The journey home</strong>
+          <span>Lyon → Lille Europe → London St Pancras</span>
+        </div>
+        <span>Day 14</span>
+      </div>
+    </section>
+
+    <section class="section planning-section">
+      <div class="planning-intro">
+        <p class="eyebrow">MAKE IT REAL</p>
+        <h2>From lovely idea<br>to <em>booked.</em></h2>
+        <p>Add confirmation numbers, travel times and links as bookings arrive. Signed-in changes sync to the family master plan.</p>
+        <div class="progress-ring" aria-label="Booking progress">
+          <svg viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="50"/>
+            <circle class="ring-value" id="progressRing" cx="60" cy="60" r="50"/>
+          </svg>
+          <div><strong id="progressPercent">0%</strong><span>booked</span></div>
+        </div>
+      </div>
+
+      <div class="planner-panels">
+        <section class="panel" id="bookings">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">BOOKING DESK</p>
+              <h3>Your booking wallet</h3>
+            </div>
+            <div class="booking-tools">
+              <button class="small-button" id="expandBookings">Open all</button>
+              <span class="counter" id="bookingCounter">0 / 14</span>
+            </div>
+          </div>
+          <p class="panel-note">Open a booking to add its confirmation, dates, times and useful links.</p>
+          <div class="booking-wallet" id="bookingChecklist"></div>
+        </section>
+
+        <section class="panel budget-panel" id="budget">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">THE NUMBERS</p>
+              <h3>Working budget</h3>
+            </div>
+            <button class="small-button" id="resetBudget">Reset</button>
+          </div>
+          <div class="budget-list" id="budgetList"></div>
+          <div class="budget-total">
+            <span>Estimated total</span>
+            <strong id="budgetTotal">£0</strong>
+          </div>
+          <div class="budget-per-day">
+            <span>That’s roughly</span>
+            <strong id="perDay">£0 per day</strong>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="section activities-section" id="activities">
+      <div class="section-heading activities-heading">
+        <div>
+          <p class="eyebrow">THINGS TO DO</p>
+          <h2>Plan the days,<br><em>place by place.</em></h2>
+        </div>
+        <p>Keep ideas separate from the travel itinerary, then add dates, tickets and details when the shape of each day becomes clear.</p>
+      </div>
+
+      <div class="activity-dashboard">
+        <div class="location-tabs" id="locationTabs" role="tablist" aria-label="Activity locations"></div>
+        <div class="activity-location" id="activityLocation"></div>
+      </div>
+    </section>
+
+    <section class="closing">
+      <p class="eyebrow">THE LAST WORD</p>
+      <blockquote>“Not all those who wander<br>are <em>lost.</em> Some have<br>a very good rail pass.”</blockquote>
+      <a class="button light" href="#top">Back to the beginning ↑</a>
+    </section>
+  </main>
+
+  <footer>
+    <span>HODGE HOLIDAYS 2026</span>
+    <span>London → Europe → London</span>
+    <span>Summer 2026</span>
+  </footer>
+
+  <dialog class="account-dialog" id="accountDialog">
+    <button class="dialog-close" id="closeAccount" type="button" aria-label="Close">&times;</button>
+    <div id="signedOutPanel">
+      <p class="eyebrow">FAMILY ACCESS</p>
+      <h2>Open the<br><em>master plan.</em></h2>
+      <p>Enter an authorised email address. Supabase will send a secure sign-in link—no password needed.</p>
+      <form id="signInForm">
+        <label class="dialog-field">
+          <span>Email address</span>
+          <input id="signInEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+        </label>
+        <button class="button primary dialog-submit" type="submit">Email me a sign-in link</button>
+      </form>
+      <p class="dialog-message" id="authMessage"></p>
+    </div>
+    <div id="signedInPanel" hidden>
+      <p class="eyebrow">FAMILY ACCESS</p>
+      <h2>You’re<br><em>connected.</em></h2>
+      <p id="accountEmail"></p>
+      <div class="account-role" id="accountRole"></div>
+      <button class="button primary dialog-submit" id="uploadLocalData" type="button">Make this device the master</button>
+      <button class="button ghost dialog-submit" id="signOutButton" type="button">Sign out</button>
+      <p class="dialog-message" id="accountMessage"></p>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
