@@ -550,7 +550,11 @@ async function handleDocumentAction(event) {
   const index = Number(item.dataset.documentIndex);
 
   if (actionButton.matches("[data-open-document]")) {
-    const documentWindow = window.open("", "_blank", "noopener");
+    const documentWindow = window.open("about:blank", "_blank");
+    if (documentWindow) {
+      documentWindow.document.write("<title>Opening document...</title><p style=\"font-family: sans-serif; padding: 24px;\">Opening your travel document...</p>");
+      documentWindow.document.close();
+    }
     await openDocument(record, index, documentWindow);
   } else {
     await deleteDocument(record, index);
