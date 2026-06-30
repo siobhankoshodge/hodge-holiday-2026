@@ -74,11 +74,14 @@ try {
   stored = {};
 }
 
+const cloneData = value => typeof structuredClone === "function"
+  ? structuredClone(value)
+  : JSON.parse(JSON.stringify(value));
 const legacyDetails = {};
 const state = {
   checked: Array.isArray(stored.checked) ? stored.checked : [],
   bookingDetails: stored.bookingDetails || legacyDetails,
-  activities: stored.activities || structuredClone(starterActivities),
+  activities: stored.activities || cloneData(starterActivities),
   activeActivityLocation: stored.activeActivityLocation || "brussels",
   budget: { ...Object.fromEntries(budgetItems.map(item => [item.key, item.value])), ...(stored.budget || {}) },
   evening: stored.evening || false
@@ -88,12 +91,14 @@ bookings.forEach(booking => {
   state.bookingDetails[booking.id] ||= {};
   state.bookingDetails[booking.id].date ||= booking.defaultDate;
   if (booking.defaultEndDate) state.bookingDetails[booking.id].arrivalTime ||= booking.defaultEndDate;
+  if (!Array.isArray(state.bookingDetails[booking.id].documents)) state.bookingDetails[booking.id].documents = [];
 });
 
 const cloudConfig = window.HODGE_HOLIDAYS_CONFIG || {};
 const cloud = window.supabase && cloudConfig.supabaseUrl && cloudConfig.supabasePublishableKey
   ? window.supabase.createClient(cloudConfig.supabaseUrl, cloudConfig.supabasePublishableKey)
   : null;
+const documentBucket = cloudConfig.documentBucket || "holiday-documents";
 let cloudUser = null;
 let cloudRole = null;
 let cloudSaveTimer = null;
@@ -199,7 +204,7 @@ function hideSyncBanner() {
   document.querySelector("#syncBanner").hidden = true;
 }
 
-const deviceStateAtLoad = structuredClone(serializableState());
+const deviceStateAtLoad = cloneData(serializableState());
 
 function updateAccountDialog() {
   const signedOut = document.querySelector("#signedOutPanel");
@@ -221,7 +226,7 @@ function applyAccessMode() {
   const readOnly = cloudRole === "viewer";
   document.body.classList.toggle("viewer-mode", readOnly);
   document.querySelectorAll(
-    "#bookings input, #bookings textarea, #budget input, #resetBudget, #activities input, #activities .activity-delete, #activities .activity-add"
+    "#bookings input, #bookings textarea, #bookings [data-delete-document], #budget input, #resetBudget, #activities input, #activities .activity-delete, #activities .activity-add"
   ).forEach(control => {
     control.disabled = readOnly;
   });
@@ -229,7 +234,15 @@ function applyAccessMode() {
 
 function openAccountDialog() {
   updateAccountDialog();
-  document.querySelector("#accountDialog").showModal();
+  const overlay = document.querySelector("#accountDialog");
+  overlay.hidden = false;
+  document.body.classList.add("modal-open");
+  window.setTimeout(() => document.querySelector("#signInEmail")?.focus(), 0);
+}
+
+function closeAccountDialog() {
+  document.querySelector("#accountDialog").hidden = true;
+  document.body.classList.remove("modal-open");
 }
 
 async function initialiseCloud() {
@@ -251,6 +264,21 @@ function escapeHtml(value = "") {
     .replaceAll('"', "&quot;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
+}
+
+function formatFileSize(bytes = 0) {
+  if (!bytes) return "";
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function safeFileName(name = "document") {
+  const cleaned = name
+    .normalize("NFKD")
+    .replace(/[^\w.\-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return cleaned || `document-${Date.now()}`;
 }
 
 function normalizeUrl(value) {
@@ -282,6 +310,32 @@ function renderLegs() {
 
 function bookingDetails(id) {
   return state.bookingDetails[id] || {};
+}
+
+function documentsForBooking(id) {
+  const details = bookingDetails(id);
+  if (!Array.isArray(details.documents)) details.documents = [];
+  return details.documents;
+}
+
+function renderBookingDocuments(id) {
+  const documents = documentsForBooking(id);
+  if (!documents.length) {
+    return `<div class="document-empty">No documents uploaded yet.</div>`;
+  }
+
+  return documents.map((document, index) => `
+    <div class="document-item" data-document-index="${index}">
+      <div>
+        <strong>${escapeHtml(document.name || "Travel document")}</strong>
+        <span>${escapeHtml([document.kind, formatFileSize(document.size)].filter(Boolean).join(" · "))}</span>
+      </div>
+      <div class="document-actions">
+        <button class="small-button" type="button" data-open-document>Open</button>
+        <button class="small-button document-delete" type="button" data-delete-document>Remove</button>
+      </div>
+    </div>
+  `).join("");
 }
 
 function renderBookings() {
@@ -332,6 +386,17 @@ function renderBookings() {
               <span>Notes</span>
               <textarea data-field="notes" placeholder="Seat numbers, room type, cancellation details...">${escapeHtml(details.notes)}</textarea>
             </label>
+            <div class="booking-field wide document-field">
+              <span>Travel documents</span>
+              <div class="document-upload">
+                <input type="file" data-document-upload accept=".pdf,image/*,.doc,.docx">
+                <small>Upload PDFs, screenshots, tickets or hotel confirmations. Signed-in family can open them here.</small>
+              </div>
+              <div class="document-list">
+                ${renderBookingDocuments(booking.id)}
+              </div>
+              <p class="document-message" aria-live="polite"></p>
+            </div>
           </div>
           <div class="booking-actions">
             <label class="booked-toggle">
@@ -351,6 +416,8 @@ function renderBookings() {
 }
 
 function handleBookingInput(event) {
+  if (event.target.matches("[data-document-upload]")) return;
+
   const record = event.target.closest(".booking-record");
   if (!record) return;
   const id = record.dataset.id;
@@ -376,11 +443,128 @@ function handleBookingInput(event) {
   save();
 }
 
+async function handleDocumentUpload(event) {
+  const input = event.target.closest("[data-document-upload]");
+  if (!input || !input.files.length) return;
+
+  const record = input.closest(".booking-record");
+  const id = record.dataset.id;
+  const message = record.querySelector(".document-message");
+  const file = input.files[0];
+  input.value = "";
+
+  if (!cloud || !cloudUser) {
+    message.textContent = "Please sign in before uploading documents.";
+    return;
+  }
+  if (cloudRole !== "editor") {
+    message.textContent = "Only the editor can upload or remove documents.";
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    message.textContent = "Please choose a file smaller than 10 MB.";
+    return;
+  }
+
+  message.textContent = `Uploading ${file.name}...`;
+  const path = `${cloudConfig.planId || "hodge-holidays-2026"}/${id}/${Date.now()}-${safeFileName(file.name)}`;
+  const { error } = await cloud.storage.from(documentBucket).upload(path, file, {
+    cacheControl: "3600",
+    upsert: false
+  });
+
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  documentsForBooking(id).push({
+    name: file.name,
+    path,
+    kind: file.type || "document",
+    size: file.size,
+    uploadedAt: new Date().toISOString()
+  });
+  save();
+  renderBookings();
+  message.textContent = "";
+}
+
+async function openDocument(record, index, documentWindow) {
+  const id = record.dataset.id;
+  const message = record.querySelector(".document-message");
+  const document = documentsForBooking(id)[index];
+
+  if (!document?.path) return;
+  if (!cloud || !cloudUser) {
+    if (documentWindow) documentWindow.close();
+    message.textContent = "Please sign in before opening documents.";
+    return;
+  }
+
+  message.textContent = "Opening document...";
+  const { data, error } = await cloud.storage.from(documentBucket).createSignedUrl(document.path, 60 * 10);
+  if (error || !data?.signedUrl) {
+    if (documentWindow) documentWindow.close();
+    message.textContent = error?.message || "Could not open that document.";
+    return;
+  }
+  if (documentWindow) {
+    documentWindow.location.href = data.signedUrl;
+  } else {
+    window.open(data.signedUrl, "_blank", "noopener");
+  }
+  message.textContent = "";
+}
+
+async function deleteDocument(record, index) {
+  const id = record.dataset.id;
+  const message = record.querySelector(".document-message");
+  const documents = documentsForBooking(id);
+  const document = documents[index];
+
+  if (!document?.path) return;
+  if (!cloud || cloudRole !== "editor") {
+    message.textContent = "Only the editor can remove documents.";
+    return;
+  }
+
+  message.textContent = "Removing document...";
+  const { error } = await cloud.storage.from(documentBucket).remove([document.path]);
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  documents.splice(index, 1);
+  save();
+  renderBookings();
+}
+
+async function handleDocumentAction(event) {
+  const actionButton = event.target.closest("[data-open-document], [data-delete-document]");
+  if (!actionButton) return;
+
+  const record = actionButton.closest(".booking-record");
+  const item = actionButton.closest(".document-item");
+  const index = Number(item.dataset.documentIndex);
+
+  if (actionButton.matches("[data-open-document]")) {
+    const documentWindow = window.open("", "_blank", "noopener");
+    await openDocument(record, index, documentWindow);
+  } else {
+    await deleteDocument(record, index);
+  }
+}
+
 function updateProgress() {
   const validIds = new Set(bookings.map(item => item.id));
   const done = new Set(state.checked.map(value => typeof value === "number" ? bookings[value]?.id : value).filter(value => validIds.has(value))).size;
   const percent = Math.round((done / bookings.length) * 100);
+  const actualTotal = bookings.reduce((sum, booking) => sum + (Number(bookingDetails(booking.id).cost) || 0), 0);
+  const format = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: actualTotal % 1 ? 2 : 0 });
   document.querySelector("#bookingCounter").textContent = `${done} / ${bookings.length}`;
+  document.querySelector("#bookingActualTotal").textContent = `${format.format(actualTotal)} spent`;
   document.querySelector("#progressPercent").textContent = `${percent}%`;
   document.querySelector("#progressRing").style.strokeDashoffset = 314.16 - (314.16 * percent / 100);
 }
@@ -522,17 +706,26 @@ function updateActivityTotal() {
   if (totalElement) totalElement.textContent = format.format(total);
 }
 
+document.querySelector("#bookingChecklist").addEventListener("change", handleDocumentUpload);
+document.querySelector("#bookingChecklist").addEventListener("click", handleDocumentAction);
 document.querySelector("#accountButton").addEventListener("click", openAccountDialog);
 document.querySelector("#syncAction").addEventListener("click", openAccountDialog);
-document.querySelector("#closeAccount").addEventListener("click", () => document.querySelector("#accountDialog").close());
+document.querySelector("#closeAccount").addEventListener("click", closeAccountDialog);
 document.querySelector("#accountDialog").addEventListener("click", event => {
-  if (event.target === event.currentTarget) event.currentTarget.close();
+  if (event.target === event.currentTarget) closeAccountDialog();
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !document.querySelector("#accountDialog").hidden) closeAccountDialog();
 });
 
 document.querySelector("#signInForm").addEventListener("submit", async event => {
   event.preventDefault();
   const email = document.querySelector("#signInEmail").value.trim();
   const message = document.querySelector("#authMessage");
+  if (!cloud) {
+    message.textContent = "Cloud sign-in is still loading. Please check your connection and try again.";
+    return;
+  }
   message.textContent = "Sending your secure link...";
   const redirectTo = window.location.protocol === "file:"
     ? "https://siobhankoshodge.github.io/hodge-holiday-2026/"
@@ -547,7 +740,7 @@ document.querySelector("#signInForm").addEventListener("submit", async event => 
 document.querySelector("#signOutButton").addEventListener("click", async () => {
   document.querySelector("#accountMessage").textContent = "Signing out...";
   await cloud.auth.signOut();
-  document.querySelector("#accountDialog").close();
+  closeAccountDialog();
 });
 
 document.querySelector("#uploadLocalData").addEventListener("click", async () => {
