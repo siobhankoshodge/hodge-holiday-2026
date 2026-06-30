@@ -8,20 +8,20 @@ const legs = [
 ];
 
 const bookings = [
-  { id: "rail-london-brussels", type: "train", title: "Eurostar to Brussels", subtitle: "London St Pancras to Brussels Midi", dateLabel: "Travel date", defaultDate: "2026-08-15" },
-  { id: "hotel-brussels", type: "hotel", title: "Brussels hotel", subtitle: "2 nights", dateLabel: "Check-in date", defaultDate: "2026-08-15", defaultEndDate: "2026-08-17" },
-  { id: "rail-brussels-strasbourg", type: "train", title: "Train to Strasbourg", subtitle: "Direct service - about 3h 30m", dateLabel: "Travel date", defaultDate: "2026-08-17" },
-  { id: "hotel-strasbourg", type: "hotel", title: "Strasbourg hotel", subtitle: "1 night", dateLabel: "Check-in date", defaultDate: "2026-08-17", defaultEndDate: "2026-08-18" },
-  { id: "rail-strasbourg-lucerne", type: "train", title: "Train to Lucerne", subtitle: "Morning departure - about 2h 30m", dateLabel: "Travel date", defaultDate: "2026-08-18" },
-  { id: "hotel-lucerne", type: "hotel", title: "Lucerne hotel", subtitle: "3 nights", dateLabel: "Check-in date", defaultDate: "2026-08-18", defaultEndDate: "2026-08-21" },
-  { id: "rail-lucerne-como", type: "train", title: "EuroCity to Como", subtitle: "Through the Alps - about 3h", dateLabel: "Travel date", defaultDate: "2026-08-21" },
-  { id: "hotel-como", type: "hotel", title: "Lake Como hotel", subtitle: "4 nights", dateLabel: "Check-in date", defaultDate: "2026-08-21", defaultEndDate: "2026-08-25" },
-  { id: "rail-como-lausanne", type: "train", title: "Train to Lausanne", subtitle: "Via the Simplon Pass - about 4h 30m", dateLabel: "Travel date", defaultDate: "2026-08-25" },
-  { id: "hotel-lausanne", type: "hotel", title: "Lausanne hotel", subtitle: "2 nights", dateLabel: "Check-in date", defaultDate: "2026-08-25", defaultEndDate: "2026-08-27" },
-  { id: "rail-lausanne-lyon", type: "train", title: "Train to Lyon", subtitle: "Direct to Lyon Part-Dieu - about 2h 40m", dateLabel: "Travel date", defaultDate: "2026-08-27" },
-  { id: "hotel-lyon", type: "hotel", title: "Lyon hotel", subtitle: "Final night", dateLabel: "Check-in date", defaultDate: "2026-08-27", defaultEndDate: "2026-08-28" },
-  { id: "rail-lyon-lille", type: "train", title: "TGV to Lille", subtitle: "Lyon Part-Dieu to Lille Europe - about 3h", dateLabel: "Travel date", defaultDate: "2026-08-28" },
-  { id: "rail-lille-london", type: "train", title: "Eurostar home", subtitle: "Lille Europe to London St Pancras", dateLabel: "Travel date", defaultDate: "2026-08-28" }
+  { id: "rail-london-brussels", type: "train", category: "trains", title: "Eurostar to Brussels", subtitle: "London St Pancras to Brussels Midi", dateLabel: "Travel date", defaultDate: "2026-08-15" },
+  { id: "hotel-brussels", type: "hotel", category: "hotels", title: "Brussels hotel", subtitle: "2 nights", dateLabel: "Check-in date", defaultDate: "2026-08-15", defaultEndDate: "2026-08-17" },
+  { id: "rail-brussels-strasbourg", type: "train", category: "trains", title: "Train to Strasbourg", subtitle: "Direct service - about 3h 30m", dateLabel: "Travel date", defaultDate: "2026-08-17" },
+  { id: "hotel-strasbourg", type: "hotel", category: "hotels", title: "Strasbourg hotel", subtitle: "1 night", dateLabel: "Check-in date", defaultDate: "2026-08-17", defaultEndDate: "2026-08-18" },
+  { id: "rail-strasbourg-lucerne", type: "train", category: "trains", title: "Train to Lucerne", subtitle: "Morning departure - about 2h 30m", dateLabel: "Travel date", defaultDate: "2026-08-18" },
+  { id: "hotel-lucerne", type: "hotel", category: "hotels", title: "Lucerne hotel", subtitle: "3 nights", dateLabel: "Check-in date", defaultDate: "2026-08-18", defaultEndDate: "2026-08-21" },
+  { id: "rail-lucerne-como", type: "train", category: "trains", title: "EuroCity to Como", subtitle: "Through the Alps - about 3h", dateLabel: "Travel date", defaultDate: "2026-08-21" },
+  { id: "hotel-como", type: "hotel", category: "hotels", title: "Lake Como hotel", subtitle: "4 nights", dateLabel: "Check-in date", defaultDate: "2026-08-21", defaultEndDate: "2026-08-25" },
+  { id: "rail-como-lausanne", type: "train", category: "trains", title: "Train to Lausanne", subtitle: "Via the Simplon Pass - about 4h 30m", dateLabel: "Travel date", defaultDate: "2026-08-25" },
+  { id: "hotel-lausanne", type: "hotel", category: "hotels", title: "Lausanne hotel", subtitle: "2 nights", dateLabel: "Check-in date", defaultDate: "2026-08-25", defaultEndDate: "2026-08-27" },
+  { id: "rail-lausanne-lyon", type: "train", category: "trains", title: "Train to Lyon", subtitle: "Direct to Lyon Part-Dieu - about 2h 40m", dateLabel: "Travel date", defaultDate: "2026-08-27" },
+  { id: "hotel-lyon", type: "hotel", category: "hotels", title: "Lyon hotel", subtitle: "Final night", dateLabel: "Check-in date", defaultDate: "2026-08-27", defaultEndDate: "2026-08-28" },
+  { id: "rail-lyon-lille", type: "train", category: "trains", title: "TGV to Lille", subtitle: "Lyon Part-Dieu to Lille Europe - about 3h", dateLabel: "Travel date", defaultDate: "2026-08-28" },
+  { id: "rail-lille-london", type: "train", category: "trains", title: "Eurostar home", subtitle: "Lille Europe to London St Pancras", dateLabel: "Travel date", defaultDate: "2026-08-28" }
 ];
 
 const budgetItems = [
@@ -90,6 +90,7 @@ const state = {
 bookings.forEach(booking => {
   state.bookingDetails[booking.id] ||= {};
   state.bookingDetails[booking.id].date ||= booking.defaultDate;
+  state.bookingDetails[booking.id].category ||= booking.category;
   if (booking.defaultEndDate) state.bookingDetails[booking.id].arrivalTime ||= booking.defaultEndDate;
   if (!Array.isArray(state.bookingDetails[booking.id].documents)) state.bookingDetails[booking.id].documents = [];
 });
@@ -226,7 +227,7 @@ function applyAccessMode() {
   const readOnly = cloudRole === "viewer";
   document.body.classList.toggle("viewer-mode", readOnly);
   document.querySelectorAll(
-    "#bookings input, #bookings textarea, #bookings [data-delete-document], #budget input, #resetBudget, #activities input, #activities .activity-delete, #activities .activity-add"
+    "#bookings input, #bookings textarea, #bookings select, #bookings [data-delete-document], #budget input, #resetBudget, #activities input, #activities .activity-delete, #activities .activity-add"
   ).forEach(control => {
     control.disabled = readOnly;
   });
@@ -312,6 +313,12 @@ function bookingDetails(id) {
   return state.bookingDetails[id] || {};
 }
 
+function bookingCategoryOptions(selectedKey) {
+  return budgetItems.map(item => `
+    <option value="${escapeHtml(item.key)}" ${item.key === selectedKey ? "selected" : ""}>${escapeHtml(item.label)}</option>
+  `).join("");
+}
+
 function documentsForBooking(id) {
   const details = bookingDetails(id);
   if (!Array.isArray(details.documents)) details.documents = [];
@@ -378,6 +385,12 @@ function renderBookings() {
               <span>Cost paid</span>
               <input type="number" min="0" step="0.01" data-field="cost" value="${escapeHtml(details.cost)}" placeholder="0.00">
             </label>
+            <label class="booking-field">
+              <span>Budget category</span>
+              <select data-field="category">
+                ${bookingCategoryOptions(details.category || booking.category)}
+              </select>
+            </label>
             <label class="booking-field wide">
               <span>Booking or confirmation link</span>
               <input type="url" data-field="link" value="${escapeHtml(details.link)}" placeholder="https://...">
@@ -439,6 +452,7 @@ function handleBookingInput(event) {
       link.href = url || "#";
       link.classList.toggle("is-disabled", !url);
     }
+    if (["cost", "category"].includes(event.target.dataset.field)) updateProgress();
   }
   save();
 }
@@ -571,6 +585,36 @@ function updateProgress() {
   document.querySelector("#bookingActualTotal").textContent = `${format.format(actualTotal)} spent`;
   document.querySelector("#progressPercent").textContent = `${percent}%`;
   document.querySelector("#progressRing").style.strokeDashoffset = 314.16 - (314.16 * percent / 100);
+  renderBookingCategorySummary();
+}
+
+function renderBookingCategorySummary() {
+  const format = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 });
+  const spentByCategory = Object.fromEntries(budgetItems.map(item => [item.key, 0]));
+
+  bookings.forEach(booking => {
+    const details = bookingDetails(booking.id);
+    const category = details.category || booking.category || "buffer";
+    spentByCategory[category] = (spentByCategory[category] || 0) + (Number(details.cost) || 0);
+  });
+
+  document.querySelector("#bookingCategorySummary").innerHTML = budgetItems.map(item => {
+    const spent = spentByCategory[item.key] || 0;
+    const budget = Number(state.budget[item.key]) || 0;
+    const percent = budget ? Math.min((spent / budget) * 100, 100) : 0;
+    return `
+      <article class="booking-category-card">
+        <div class="booking-category-top">
+          <span class="budget-icon">${escapeHtml(item.icon)}</span>
+          <div>
+            <strong>${escapeHtml(item.label)}</strong>
+            <span>${format.format(spent)} spent of ${format.format(budget)}</span>
+          </div>
+        </div>
+        <div class="booking-category-bar" aria-hidden="true"><span style="width: ${percent}%"></span></div>
+      </article>
+    `;
+  }).join("");
 }
 
 function renderBudget() {
@@ -588,6 +632,7 @@ function renderBudget() {
     state.budget[event.target.dataset.key] = Number(event.target.value) || 0;
     save();
     updateBudget();
+    renderBookingCategorySummary();
   };
   updateBudget();
 }
@@ -776,6 +821,7 @@ document.querySelector("#resetBudget").addEventListener("click", () => {
   state.budget = Object.fromEntries(budgetItems.map(item => [item.key, item.value]));
   save();
   renderBudget();
+  renderBookingCategorySummary();
 });
 
 document.querySelector("#printButton").addEventListener("click", () => window.print());
